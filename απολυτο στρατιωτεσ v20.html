@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ισοκατανομή Υπηρεσιών - GKARAS ROBOTICS (Ανά μέλος με τύπους απουσιών)</title>
+  <style>
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, system-ui, sans-serif; margin: 0; padding: 0; }
+    body { background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+    .app-container { max-width: 1400px; width: 100%; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border-radius: 48px; box-shadow: 0 25px 50px -12px rgba(2, 84, 105, 0.3); padding: 28px; border: 1px solid rgba(255,255,255,0.7); }
+    .powered-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; padding: 0 8px; }
+    .powered-left { font-size: 1rem; font-weight: 500; color: #164863; letter-spacing: 1px; background: #d2f0ff; padding: 6px 18px; border-radius: 60px; border: 1px solid #7ab7d4; }
+    .powered-left span { color: #0b3b5a; font-weight: 700; }
+    .powered-right { font-size: 0.9rem; color: #1e5875; background: #d2f0ff; padding: 6px 18px; border-radius: 60px; }
+    h1 { font-size: 2rem; font-weight: 600; color: #05445E; margin: 8px 0 16px 0; border-bottom: 4px solid #2e86ab; padding-bottom: 12px; display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    h1 small { font-size: 1rem; font-weight: 400; color: #2c6e8f; background: #c2e7ff; padding: 5px 15px; border-radius: 60px; }
+    .badge { background: #c1e3fe; padding: 4px 16px; border-radius: 40px; font-size: 0.9rem; font-weight: 500; color: #05445E; border: 1px solid #7ab7d4; }
+    .flex-row { display: flex; flex-wrap: wrap; gap: 24px; margin-top: 12px; }
+    .card { background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); border-radius: 32px; padding: 24px; box-shadow: 0 12px 30px -8px rgba(2, 84, 105, 0.2); border: 1px solid rgba(255,255,255,0.9); flex: 1 1 500px; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.95); }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .card-header h3 { margin: 0; font-weight: 600; color: #0b4b6b; font-size: 1.6rem; }
+    .input-group { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; align-items: center; }
+    .input-group input, .input-group textarea, .input-group select, .input-group button { padding: 12px 18px; border-radius: 50px; border: 1px solid #9ac7e0; font-size: 1rem; background: white; transition: 0.15s; }
+    .input-group textarea { flex: 1 1 300px; min-height: 80px; border-radius: 24px; resize: vertical; background: #f9fcff; }
+    .input-group select { background: white; min-width: 140px; cursor: pointer; }
+    .input-group button { background: #1976a5; color: white; border: none; cursor: pointer; font-weight: 600; padding: 12px 28px; box-shadow: 0 6px 12px rgba(20,90,120,0.3); }
+    .input-group button:hover { background: #0e5a7e; transform: scale(1.02); }
+    .input-group button.secondary { background: #d4ecfd; color: #05445E; border: 1px solid #7ab7d4; box-shadow: none; }
+    .input-group button.secondary:hover { background: #b7dff5; }
+    .date-row { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; }
+    .date-row select { flex: 1 1 130px; background: #f0f9ff; border-color: #9ac7e0; }
+    .date-row .days-input { flex: 3 1 250px; background: #f0f9ff; }
+    .item-list { list-style: none; padding: 0; margin: 16px 0 0; display: flex; flex-direction: column; gap: 10px; max-height: 300px; overflow-y: auto; }
+    .item-list li { background: #edf7fd; border-radius: 50px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #b3d8f0; box-shadow: 0 2px 6px rgba(0,70,100,0.1); }
+    .item-info { font-weight: 500; color: #0b4b6b; word-break: break-word; max-width: 70%; }
+    .item-info small { color: #2e6d8f; }
+    .item-actions { display: flex; gap: 8px; }
+    .item-actions button { background: none; border: none; font-size: 1.3rem; cursor: pointer; padding: 6px 12px; border-radius: 30px; transition: 0.1s; }
+    .item-actions .edit-btn { color: #1976a5; } .item-actions .edit-btn:hover { background: #cde4f5; }
+    .item-actions .delete-btn { color: #b13e3e; } .item-actions .delete-btn:hover { background: #ffe1e1; }
+    .absence-section { margin-top: 20px; border-top: 1px solid #b3d8f0; padding-top: 15px; }
+    .absence-title { font-weight: 600; color: #0b4b6b; margin-bottom: 10px; font-size: 1.1rem; }
+    .absence-item { background: #fef9e3; border-left: 4px solid #e0b800; margin-top: 6px; display: flex; justify-content: space-between; align-items: center; padding: 6px 12px; border-radius: 40px; }
+    .absence-input-group { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
+    .absence-input-group input { width: 90px; }
+    .btn-example { background: #c6e4fa; border: 2px dashed #2e86ab; color: #05445E; padding: 12px 24px; border-radius: 60px; font-size: 1rem; margin: 8px 0 16px; cursor: pointer; width: fit-content; font-weight: 500; }
+    .btn-example:hover { background: #a9d6f5; border-color: #1f6a8a; }
+    table { width: 100%; border-collapse: collapse; background: white; border-radius: 32px; overflow: hidden; box-shadow: 0 12px 28px rgba(20, 70, 110, 0.15); margin-top: 20px; border: 1px solid #b3d8f0; }
+    th { background: #c6e4fa; color: #05445E; font-weight: 600; padding: 12px 6px; text-align: center; font-size: 0.85rem; border-bottom: 2px solid #7ab7d4; }
+    td { padding: 10px 6px; text-align: center; border-bottom: 1px solid #d3e7f5; background: #fdfdfd; font-size: 0.85rem; }
+    .group-row td:first-child { background-color: #e2f1fd; font-weight: 600; color: #0b4b6b; text-align: left; padding-left: 12px; }
+    .totals-row { background: #c6e4fa; font-weight: 700; border-top: 2px solid #7ab7d4; }
+    .totals-row td { background: #c6e4fa; color: #05445E; }
+    .table-wrapper { overflow-x: auto; border-radius: 32px; margin-bottom: 30px; }
+    .info-note { background: #dff1ff; border-radius: 28px; padding: 16px 24px; margin: 24px 0 0; color: #0b4b6b; font-size: 0.95rem; border-left: 6px solid #2e86ab; }
+    .error-msg { color: #a42b2b; background: #ffe5e5; padding: 14px 24px; border-radius: 60px; margin: 20px 0; border: 1px solid #f3b5b5; }
+    .warning-msg { color: #b96f00; background: #fff3cd; padding: 14px 24px; border-radius: 60px; margin: 20px 0; border: 1px solid #ffc107; }
+    .button-bar { display: flex; gap: 20px; justify-content: center; margin: 30px 0 20px; flex-wrap: wrap; }
+    .action-btn { background: #1976a5; color: white; border: none; padding: 12px 24px; border-radius: 60px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.15s; }
+    .action-btn:hover { background: #0f5577; transform: scale(1.02); }
+    .action-btn.excel { background: #117554; } .action-btn.excel:hover { background: #0a5c40; }
+    .action-btn.print { background: #8B5A2B; } .action-btn.print:hover { background: #6E4620; }
+    .action-btn.pdf { background: #B22234; } .action-btn.pdf:hover { background: #8B1A1A; }
+    .action-btn.word { background: #185C7B; } .action-btn.word:hover { background: #0F4A63; }
+    .action-btn.html { background: #9b59b6; } .action-btn.html:hover { background: #8e44ad; }
+    .save-status { font-size: 0.85rem; color: #117554; background: #daf5e7; padding: 4px 14px; border-radius: 60px; border: 1px solid #79c9a8; }
+    .subtitle { font-size: 1.3rem; font-weight: 600; color: #0b4b6b; margin: 25px 0 12px 0; border-left: 8px solid #2e86ab; padding-left: 20px; }
+    .type-badge { display: inline-block; background: #fff1c1; color: #7a5d00; padding: 2px 8px; border-radius: 30px; font-size: 0.7rem; margin-left: 6px; border: 1px solid #e0b800; }
+    .calendar-table th, .calendar-table td { padding: 6px 3px; font-size: 0.75rem; white-space: nowrap; }
+    .calendar-table .holiday { background-color: #ffecb3; }
+    .checkmark { color: #2e7d32; font-weight: bold; font-size: 1.1rem; }
+    .calendar-controls { display: flex; gap: 15px; flex-wrap: wrap; align-items: center; margin: 20px 0 10px; background: #e9f2f9; padding: 10px 20px; border-radius: 60px; }
+    .member-name-cell { font-size: 0.7rem; white-space: normal; word-break: break-word; max-width: 100px; }
+    .member-summary-table { margin-top: 15px; margin-bottom: 25px; background: #f9fefb; border-radius: 20px; overflow-x: auto; }
+    .member-summary-table th { background: #cdecf5; }
+    .status-exod { background-color: #ffe0b3; font-weight: bold; color: #b45f06; }
+    .status-ypiresiako { background-color: #ffcccc; font-weight: bold; color: #b22234; }
+    .status-cell-exod { background-color: #fff3e0; color: #b45f06; font-weight: bold; }
+    .status-cell-ypiresiako { background-color: #ffe0e0; color: #b22234; font-weight: bold; }
+    @media print {
+      .powered-header, .badge, .btn-example, .input-group, .card, .button-bar, .info-note, .save-status, .item-list, .edit-btn, .delete-btn, .powered-right, h1 small, .calendar-controls { display: none !important; }
+      @page { size: A4 landscape; margin: 1cm; }
+      h1 { font-size: 16pt; margin-bottom: 5px; }
+      .subtitle { font-size: 12pt; margin: 10px 0 5px; }
+      table { font-size: 7pt; }
+      th, td { padding: 3px 2px; }
+      .table-wrapper { transform: scale(0.9); transform-origin: top left; page-break-inside: avoid; }
+    }
+  </style>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+<div class="app-container" id="app">
+  <div class="powered-header">
+    <div class="powered-left">⚡ <span>POWERED BY GKARAS ROBOTICS</span> ⚡</div>
+    <div class="powered-right">Έκδοση 33.0 · Απουσίες ανά μέλος με τύπο</div>
+  </div>
+  <h1>📋 Ισοκατανομή 24ωρων Υπηρεσιών <small>με εξισορρόπηση & ανάθεση σε μέλη</small></h1>
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <div class="badge">Ομάδες & Υπηρεσίες - Αυτόματη αποθήκευση</div>
+    <button class="btn-example" id="loadExampleBtn">📂 Φόρτωση παραδείγματος (Απρίλιος 2026)</button>
+    <span id="saveStatus" class="save-status">✔ Αποθηκεύτηκε</span>
+  </div>
+
+  <div class="flex-row">
+    <div class="card">
+      <div class="card-header"><h3>👥 Ομάδες</h3><span class="badge" id="groupsCount">0</span></div>
+      <div class="input-group">
+        <input type="text" id="groupNameInput" placeholder="Όνομα ομάδας">
+        <input type="number" id="groupArmedInput" placeholder="Ένοπλοι" min="0" step="1" value="0" style="width:90px">
+        <input type="number" id="groupUnarmedInput" placeholder="Άοπλοι" min="0" step="1" value="0" style="width:90px">
+        <button id="addGroupBtn">➕ Προσθήκη</button>
+      </div>
+      <ul class="item-list" id="groupsList"></ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><h3>🛡️ Υπηρεσίες</h3><span class="badge" id="dutiesCount">0</span></div>
+      <div class="input-group" style="flex-direction: column; align-items: stretch;">
+        <input type="text" id="dutyNameInput" placeholder="Όνομα υπηρεσίας">
+        <select id="dutyTypeSelect" style="width:100%;"><option value="armed">🔫 Ένοπλη (μόνο ένοπλοι)</option><option value="mixed" selected>🔄 Μικτή (όλοι)</option></select>
+        <div class="date-row">
+          <select id="dutyYearSelect"><option value="2025">2025</option><option value="2026" selected>2026</option></select>
+          <select id="dutyMonthSelect">
+            <option value="1">Ιαν</option><option value="2">Φεβ</option><option value="3">Μαρ</option><option value="4" selected>Απρ</option>
+            <option value="5">Μάι</option><option value="6">Ιούν</option><option value="7">Ιούλ</option><option value="8">Αύγ</option>
+            <option value="9">Σεπ</option><option value="10">Οκτ</option><option value="11">Νοέ</option><option value="12">Δεκ</option>
+          </select>
+          <input type="text" id="dutyDaysInput" placeholder="π.χ. 1,5,10-15,20-22">
+        </div>
+        <button id="addDutyBtn">➕ Προσθήκη / Ενημέρωση</button>
+      </div>
+      <ul class="item-list" id="dutiesList"></ul>
+    </div>
+  </div>
+
+  <!-- Absence panels will be generated dynamically per group with member-level absences -->
+  <div id="absencesContainer"></div>
+
+  <div class="button-bar">
+    <button id="calculateBtn" class="action-btn">📊 ΥΠΟΛΟΓΙΣΜΟΣ (Βέλτιστη)</button>
+    <button id="printBtn" class="action-btn print">🖨️ ΕΚΤΥΠΩΣΗ</button>
+    <button id="pdfBtn" class="action-btn pdf">📄 PDF</button>
+    <button id="excelBtn" class="action-btn excel">📥 EXCEL (XLSX)</button>
+    <button id="wordBtn" class="action-btn word">📝 WORD</button>
+    <button id="htmlExportBtn" class="action-btn html">📤 ΕΞΑΓΩΓΗ HTML (Κοινοποίηση)</button>
+  </div>
+
+  <div id="allocationTablesContainer"></div>
+
+  <div class="subtitle">📅 Ημερολόγια υπηρεσιών ανά ομάδα (✓)</div>
+  <div class="calendar-controls">
+    <label>Ομάδα: <select id="calendarGroupSelect"></select></label>
+    <label>Έτος: <select id="calendarYearSelect"><option value="2025">2025</option><option value="2026" selected>2026</option></select></label>
+    <label>Μήνας: <select id="calendarMonthSelect">
+      <option value="1">Ιανουάριος</option><option value="2">Φεβρουάριος</option><option value="3">Μάρτιος</option>
+      <option value="4" selected>Απρίλιος</option><option value="5">Μάιος</option><option value="6">Ιούνιος</option>
+      <option value="7">Ιούλιος</option><option value="8">Αύγουστος</option><option value="9">Σεπτέμβριος</option>
+      <option value="10">Οκτώβριος</option><option value="11">Νοέμβριος</option><option value="12">Δεκέμβριος</option>
+    </select></label>
+    <label>Αργίες (ημέρες): <input type="text" id="holidaysInput" placeholder="π.χ. 1,6,25" style="width:120px;"></label>
+    <button id="refreshCalendarBtn" class="action-btn" style="padding:8px 20px;">🔄 Ανανέωση</button>
+  </div>
+  <div id="calendarContainer"></div>
+
+  <div id="memberTablesContainer" style="margin-top: 40px;"></div>
+
+  <div class="info-note">
+    ✅ <strong>Απόλυτη τήρηση διαθεσιμότητας:</strong> Κάθε μέλος έχει ατομικές απουσίες (με τύπο). Οι υπηρεσίες ανατίθενται μόνο σε διαθέσιμα μέλη.<br>
+    ✅ <strong>Ισοκατανομή:</strong> Οι υπηρεσίες κατανέμονται σε ομάδες βάσει διαθέσιμων μελών και στη συνέχεια σε μεμονωμένα μέλη με απόκλιση ≤ 1.<br>
+    ✅ <strong>Πίνακες με ονόματα:</strong> Στο τέλος εμφανίζονται αναλυτικοί πίνακες ανά ομάδα όπου κάθε κελί περιέχει το όνομα του μέλους που εκτελεί την υπηρεσία.
+  </div>
+</div>
+
+<script>
+  (function() {
+    // DOM elements
+    const groupNameInput = document.getElementById('groupNameInput');
+    const groupArmedInput = document.getElementById('groupArmedInput');
+    const groupUnarmedInput = document.getElementById('groupUnarmedInput');
+    const addGroupBtn = document.getElementById('addGroupBtn');
+    const groupsList = document.getElementById('groupsList');
+    const groupsCountSpan = document.getElementById('groupsCount');
+
+    const dutyNameInput = document.getElementById('dutyNameInput');
+    const dutyTypeSelect = document.getElementById('dutyTypeSelect');
+    const dutyYearSelect = document.getElementById('dutyYearSelect');
+    const dutyMonthSelect = document.getElementById('dutyMonthSelect');
+    const dutyDaysInput = document.getElementById('dutyDaysInput');
+    const addDutyBtn = document.getElementById('addDutyBtn');
+    const dutiesList = document.getElementById('dutiesList');
+    const dutiesCountSpan = document.getElementById('dutiesCount');
+
+    const calculateBtn = document.getElementById('calculateBtn');
+    const printBtn = document.getElementById('printBtn');
+    const pdfBtn = document.getElementById('pdfBtn');
+    const excelBtn = document.getElementById('excelBtn');
+    const wordBtn = document.getElementById('wordBtn');
+    const htmlExportBtn = document.getElementById('htmlExportBtn');
+    const tablesContainer = document.getElementById('allocationTablesContainer');
+    const loadExampleBtn = document.getElementById('loadExampleBtn');
+    const saveStatusSpan = document.getElementById('saveStatus');
+    const absencesContainer = document.getElementById('absencesContainer');
+    
+    const calendarGroupSelect = document.getElementById('calendarGroupSelect');
+    const calendarYearSelect = document.getElementById('calendarYearSelect');
+    const calendarMonthSelect = document.getElementById('calendarMonthSelect');
+    const holidaysInput = document.getElementById('holidaysInput');
+    const refreshCalendarBtn = document.getElementById('refreshCalendarBtn');
+    const calendarContainer = document.getElementById('calendarContainer');
+    const memberTablesContainer = document.getElementById('memberTablesContainer');
+
+    let groups = [];
+    let duties = [];
+    let nextGroupId = 100, nextDutyId = 200;
+    let editingGroupId = null, editingDutyId = null;
+    const STORAGE_KEY = 'dutyAllocation_final_v33';
+
+    // helpers
+    function parseDaysToList(str) {
+      if (!str.trim()) return [];
+      let days = [];
+      str.split(',').forEach(part => {
+        part = part.trim();
+        if (part.includes('-')) {
+          let [s,e] = part.split('-').map(Number);
+          if (!isNaN(s) && !isNaN(e) && s<=e) for (let i=s;i<=e;i++) days.push(i);
+        } else {
+          let d = Number(part);
+          if (!isNaN(d)) days.push(d);
+        }
+      });
+      days.sort((a,b)=>a-b);
+      return days;
+    }
+    function formatDaysList(daysArray) {
+      if (!daysArray.length) return '';
+      return daysArray.join(', ');
+    }
+    function escapeHtml(s) { return String(s).replace(/[&<>]/g, m=> m==='&'?'&amp;': m==='<'?'&lt;':'&gt;'); }
+
+    // Member management
+    function getDefaultMembers(group) {
+      let members = [];
+      for (let i=1; i<=group.armed; i++) {
+        members.push({ name: `Ένοπλος ${i}`, type: 'armed', absences: [] });
+      }
+      for (let i=1; i<=group.unarmed; i++) {
+        members.push({ name: `Άοπλος ${i}`, type: 'unarmed', absences: [] });
+      }
+      return members;
+    }
+
+    // --- Render groups and member-level absence panels ---
+    function renderGroups() {
+      let html = '';
+      groups.forEach(g => {
+        html += `<li><span class="item-info"><strong>${escapeHtml(g.name)}</strong> · 🔫 ${g.armed} · 🛡️ ${g.unarmed}</span>
+          <div class="item-actions"><button class="edit-btn" data-group-id="${g.id}">✏️</button><button class="delete-btn" data-group-id="${g.id}">🗑️</button></div></li>`;
+      });
+      groupsList.innerHTML = html || '<li>Δεν υπάρχουν ομάδες</li>';
+      groupsCountSpan.innerText = groups.length;
+      document.querySelectorAll('.edit-btn[data-group-id]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          let g = groups.find(x=>x.id==btn.dataset.groupId);
+          if(g){ groupNameInput.value=g.name; groupArmedInput.value=g.armed; groupUnarmedInput.value=g.unarmed; editingGroupId=g.id; addGroupBtn.innerText='🔄 Ενημέρωση'; }
+        });
+      });
+      document.querySelectorAll('.delete-btn[data-group-id]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          groups = groups.filter(g=>g.id!=btn.dataset.groupId);
+          if(editingGroupId==btn.dataset.groupId) { editingGroupId=null; addGroupBtn.innerText='➕ Προσθήκη'; groupNameInput.value=''; groupArmedInput.value='0'; groupUnarmedInput.value='0'; }
+          renderGroups(); renderAbsencePanels(); saveToLocalStorage(); updateCalendarGroupSelect();
+        });
+      });
+      renderAbsencePanels();
+      updateCalendarGroupSelect();
+    }
+
+    function renderAbsencePanels() {
+      if(!groups.length) { absencesContainer.innerHTML=''; return; }
+      let html = '<div class="subtitle" style="margin-top:10px;">📅 Απουσίες ανά μέλος</div><div class="flex-row" style="gap:16px;">';
+      groups.forEach(g=>{
+        html += `<div class="card" style="flex:1; min-width:320px;"><div class="card-header"><h3>${escapeHtml(g.name)}</h3><span>🔫 ${g.armed} 🛡️ ${g.unarmed}</span></div>`;
+        html += `<div class="absence-section"><div class="absence-title">👥 Μέλη</div><div id="members-panel-${g.id}">`;
+        if (!g.members) g.members = getDefaultMembers(g);
+        g.members.forEach((m, idx) => {
+          // Generate absence list string for display
+          let absStr = (m.absences || []).map(a => `${a.type}:${a.fromDay}-${a.toDay}`).join(', ');
+          html += `<div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:8px;">
+                     <div style="display:flex; gap:8px; align-items:center; margin-bottom:5px;">
+                       <input type="text" value="${escapeHtml(m.name)}" data-member-idx="${idx}" data-group="${g.id}" class="member-name-input" style="flex:2; border-radius:30px; padding:4px 12px;">
+                       <select data-member-idx="${idx}" data-group="${g.id}" class="member-type-select" style="flex:1;">
+                         <option value="armed" ${m.type==='armed'?'selected':''}>🔫 Ένοπλος</option>
+                         <option value="unarmed" ${m.type==='unarmed'?'selected':''}>🛡️ Άοπλος</option>
+                       </select>
+                       <button class="remove-member" data-group="${g.id}" data-idx="${idx}" style="background:none; border:none; color:#b13e3e; cursor:pointer;">🗑️</button>
+                     </div>
+                     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                       <span style="font-size:0.8rem;">Απουσίες:</span>
+                       <div id="abs-list-${g.id}-${idx}" style="flex:3; display:flex; flex-wrap:wrap; gap:5px;">`;
+          (m.absences || []).forEach((a, aidx) => {
+            html += `<span style="background:#fff1c1; border-radius:30px; padding:2px 8px; font-size:0.7rem;">${a.type}: ${a.fromDay}-${a.toDay}
+                       <button class="del-absence" data-group="${g.id}" data-idx="${idx}" data-absidx="${aidx}" style="background:none; border:none; color:#b13e3e; cursor:pointer;">x</button>
+                     </span>`;
+          });
+          html += `</div>
+                     <div style="display:flex; gap:5px; align-items:center;">
+                       <select class="new-abs-type" data-group="${g.id}" data-idx="${idx}" style="width:90px;">
+                         <option value="ΑΔΕΙΑ">ΑΔΕΙΑ</option><option value="ΦΠ">ΦΠ</option><option value="ΕΥ">ΕΥ</option><option value="ΝΟΣ">ΝΟΣ</option>
+                         <option value="ΑΠΟΣΠΑΣΗ">ΑΠΟΣΠΑΣΗ</option><option value="ΞΑΝΘΗ">ΞΑΝΘΗ</option><option value="ΣΧΟΛΕΙΟ">ΣΧΟΛΕΙΟ</option>
+                       </select>
+                       <input type="text" class="new-abs-days" data-group="${g.id}" data-idx="${idx}" placeholder="π.χ. 1-5,10-12" style="width:120px;">
+                       <button class="add-absence" data-group="${g.id}" data-idx="${idx}" style="background:#1976a5; color:white; border:none; border-radius:40px; padding:2px 12px;">➕</button>
+                     </div>
+                   </div>
+                 </div>`;
+        });
+        html += `<div class="absence-input-group" style="margin-top:8px;">
+                   <input type="text" id="new-member-name-${g.id}" placeholder="Όνομα" style="flex:2;">
+                   <select id="new-member-type-${g.id}" style="flex:1;">
+                     <option value="armed">🔫 Ένοπλος</option>
+                     <option value="unarmed">🛡️ Άοπλος</option>
+                   </select>
+                   <button class="add-member" data-group="${g.id}" style="background:#1976a5; color:white; border:none; border-radius:40px; padding:4px 12px;">➕</button>
+                 </div>`;
+        html += `</div></div></div>`;
+      });
+      html += '</div>';
+      absencesContainer.innerHTML = html;
+      
+      // Attach event handlers
+      groups.forEach(g => {
+        // Member name change
+        document.querySelectorAll(`.member-name-input[data-group="${g.id}"]`).forEach(inp=>{
+          inp.removeEventListener('change', handleMemberNameChange);
+          inp.addEventListener('change', handleMemberNameChange);
+        });
+        // Member type change
+        document.querySelectorAll(`.member-type-select[data-group="${g.id}"]`).forEach(sel=>{
+          sel.removeEventListener('change', handleMemberTypeChange);
+          sel.addEventListener('change', handleMemberTypeChange);
+        });
+        // Remove member
+        document.querySelectorAll(`.remove-member[data-group="${g.id}"]`).forEach(btn=>{
+          btn.removeEventListener('click', handleRemoveMember);
+          btn.addEventListener('click', handleRemoveMember);
+        });
+        // Add new member
+        document.querySelectorAll(`.add-member[data-group="${g.id}"]`).forEach(btn=>{
+          btn.removeEventListener('click', handleAddMember);
+          btn.addEventListener('click', handleAddMember);
+        });
+        // Add absence
+        document.querySelectorAll(`.add-absence[data-group="${g.id}"]`).forEach(btn=>{
+          btn.removeEventListener('click', handleAddAbsence);
+          btn.addEventListener('click', handleAddAbsence);
+        });
+        // Remove absence
+        document.querySelectorAll(`.del-absence[data-group="${g.id}"]`).forEach(btn=>{
+          btn.removeEventListener('click', handleRemoveAbsence);
+          btn.addEventListener('click', handleRemoveAbsence);
+        });
+      });
+    }
+
+    function handleMemberNameChange(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const idx = parseInt(e.target.dataset.memberIdx);
+      const group = groups.find(g => g.id === groupId);
+      if (group && group.members && group.members[idx]) {
+        group.members[idx].name = e.target.value.trim() || (group.members[idx].type === 'armed' ? 'Ένοπλος' : 'Άοπλος');
+        // Update group armed/unarmed counts
+        group.armed = group.members.filter(m => m.type === 'armed').length;
+        group.unarmed = group.members.filter(m => m.type === 'unarmed').length;
+        saveToLocalStorage();
+        renderGroups(); // refresh UI
+      }
+    }
+
+    function handleMemberTypeChange(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const idx = parseInt(e.target.dataset.memberIdx);
+      const group = groups.find(g => g.id === groupId);
+      if (group && group.members && group.members[idx]) {
+        group.members[idx].type = e.target.value;
+        group.armed = group.members.filter(m => m.type === 'armed').length;
+        group.unarmed = group.members.filter(m => m.type === 'unarmed').length;
+        saveToLocalStorage();
+        renderGroups();
+      }
+    }
+
+    function handleRemoveMember(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const idx = parseInt(e.target.dataset.idx);
+      const group = groups.find(g => g.id === groupId);
+      if (group && group.members && group.members[idx]) {
+        group.members.splice(idx, 1);
+        group.armed = group.members.filter(m => m.type === 'armed').length;
+        group.unarmed = group.members.filter(m => m.type === 'unarmed').length;
+        saveToLocalStorage();
+        renderGroups();
+      }
+    }
+
+    function handleAddMember(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const group = groups.find(g => g.id === groupId);
+      if (group) {
+        const nameInput = document.getElementById(`new-member-name-${groupId}`);
+        const typeSelect = document.getElementById(`new-member-type-${groupId}`);
+        const name = nameInput.value.trim();
+        const type = typeSelect.value;
+        if (!name) { alert('Δώστε όνομα'); return; }
+        if (!group.members) group.members = getDefaultMembers(group);
+        group.members.push({ name: name, type: type, absences: [] });
+        group.armed = group.members.filter(m => m.type === 'armed').length;
+        group.unarmed = group.members.filter(m => m.type === 'unarmed').length;
+        nameInput.value = '';
+        saveToLocalStorage();
+        renderGroups();
+      }
+    }
+
+    function handleAddAbsence(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const idx = parseInt(e.target.dataset.idx);
+      const group = groups.find(g => g.id === groupId);
+      if (!group || !group.members || !group.members[idx]) return;
+      const typeSelect = e.target.parentElement.querySelector('.new-abs-type');
+      const daysInput = e.target.parentElement.querySelector('.new-abs-days');
+      const type = typeSelect.value;
+      const expr = daysInput.value.trim();
+      if (!expr) return;
+      const days = parseDaysToList(expr);
+      if (days.length === 0) return;
+      // Convert to ranges (fromDay, toDay) for compact storage
+      let ranges = [];
+      let start = days[0], end = days[0];
+      for (let i=1; i<days.length; i++) {
+        if (days[i] === end+1) end = days[i];
+        else {
+          ranges.push({ fromDay: start, toDay: end, type: type });
+          start = days[i];
+          end = days[i];
+        }
+      }
+      ranges.push({ fromDay: start, toDay: end, type: type });
+      // Append to member's absences
+      group.members[idx].absences.push(...ranges);
+      saveToLocalStorage();
+      renderGroups();
+    }
+
+    function handleRemoveAbsence(e) {
+      const groupId = parseInt(e.target.dataset.group);
+      const idx = parseInt(e.target.dataset.idx);
+      const absIdx = parseInt(e.target.dataset.absidx);
+      const group = groups.find(g => g.id === groupId);
+      if (group && group.members && group.members[idx] && group.members[idx].absences[absIdx]) {
+        group.members[idx].absences.splice(absIdx, 1);
+        saveToLocalStorage();
+        renderGroups();
+      }
+    }
+
+    function renderDuties() {
+      let html = '';
+      duties.forEach(d=>{
+        let typeText = d.type==='armed'?'🔫 Ένοπλη':'🔄 Μικτή';
+        html += `<li><span class="item-info"><strong>${escapeHtml(d.name)}</strong> <span class="type-badge">${typeText}</span><br><small>${escapeHtml(d.daysInput)} · ${d.month}/${d.year} · ${d.totalSlots} ημ.</small></span>
+          <div class="item-actions"><button class="edit-btn" data-duty-id="${d.id}">✏️</button><button class="delete-btn" data-duty-id="${d.id}">🗑️</button></div></li>`;
+      });
+      dutiesList.innerHTML = html || '<li>Δεν υπάρχουν υπηρεσίες</li>';
+      dutiesCountSpan.innerText = duties.length;
+      document.querySelectorAll('.edit-btn[data-duty-id]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          let d = duties.find(x=>x.id==btn.dataset.dutyId);
+          if(d){ dutyNameInput.value=d.name; dutyTypeSelect.value=d.type; dutyYearSelect.value=d.year; dutyMonthSelect.value=d.month; dutyDaysInput.value=d.daysInput; editingDutyId=d.id; addDutyBtn.innerText='🔄 Ενημέρωση'; }
+        });
+      });
+      document.querySelectorAll('.delete-btn[data-duty-id]').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          duties = duties.filter(d=>d.id!=btn.dataset.dutyId);
+          if(editingDutyId==btn.dataset.dutyId) { editingDutyId=null; addDutyBtn.innerText='➕ Προσθήκη'; dutyNameInput.value=''; dutyDaysInput.value=''; }
+          renderDuties(); saveToLocalStorage();
+        });
+      });
+    }
+
+    function saveToLocalStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({groups, duties, nextGroupId, nextDutyId}));
+      saveStatusSpan.innerText = '✔ Αποθηκεύτηκε';
+      setTimeout(()=>{ saveStatusSpan.innerText='✔ Αποθηκεύτηκε'; }, 1000);
+    }
+    function loadFromLocalStorage() {
+      let data = localStorage.getItem(STORAGE_KEY);
+      if(data){
+        try{
+          let d = JSON.parse(data);
+          groups = d.groups || [];
+          duties = d.duties || [];
+          nextGroupId = d.nextGroupId || 100;
+          nextDutyId = d.nextDutyId || 200;
+          groups.forEach(g => {
+            if (!g.members) g.members = getDefaultMembers(g);
+            // Ensure each member has absences array
+            g.members.forEach(m => { if (!m.absences) m.absences = []; });
+            // Update armed/unarmed counts from members
+            g.armed = g.members.filter(m => m.type === 'armed').length;
+            g.unarmed = g.members.filter(m => m.type === 'unarmed').length;
+          });
+          duties.forEach(duty=>{ duty.dayList = parseDaysToList(duty.daysInput); duty.totalSlots = duty.dayList.length; });
+        }catch(e){}
+      }
+    }
+
+    addGroupBtn.addEventListener('click',()=>{
+      let name = groupNameInput.value.trim();
+      let armed = parseInt(groupArmedInput.value,10);
+      let unarmed = parseInt(groupUnarmedInput.value,10);
+      if(!name) return alert('Όνομα ομάδας');
+      if(isNaN(armed)||isNaN(unarmed)||armed<0||unarmed<0) return alert('Έγκυροι αριθμοί');
+      if(armed+unarmed===0) return alert('Η ομάδα πρέπει να έχει μέλη');
+      if(editingGroupId!==null){
+        groups = groups.map(g=>g.id===editingGroupId?{...g,name,armed,unarmed}:g);
+        editingGroupId=null;
+        addGroupBtn.innerText='➕ Προσθήκη';
+        // Rebuild members based on new counts (keep existing names if possible? We'll reset to default for simplicity)
+        const group = groups.find(g=>g.id===editingGroupId);
+        if(group) group.members = getDefaultMembers(group);
+      } else {
+        let newGroup = {id:nextGroupId++, name, armed, unarmed, members: []};
+        newGroup.members = getDefaultMembers(newGroup);
+        groups.push(newGroup);
+      }
+      groupNameInput.value=''; groupArmedInput.value='0'; groupUnarmedInput.value='0';
+      renderGroups(); saveToLocalStorage();
+    });
+
+    addDutyBtn.addEventListener('click',()=>{
+      let name = dutyNameInput.value.trim();
+      let type = dutyTypeSelect.value;
+      let year = parseInt(dutyYearSelect.value,10);
+      let month = parseInt(dutyMonthSelect.value,10);
+      let daysInput = dutyDaysInput.value.trim();
+      if(!name) return alert('Όνομα υπηρεσίας');
+      if(!daysInput) return alert('Ημέρες');
+      let dayList = parseDaysToList(daysInput);
+      if(dayList.length===0) return alert('Μη έγκυρες ημέρες');
+      if(editingDutyId!==null){
+        duties = duties.map(d=>d.id===editingDutyId?{...d,name,type,year,month,daysInput,dayList,totalSlots:dayList.length}:d);
+        editingDutyId=null;
+        addDutyBtn.innerText='➕ Προσθήκη';
+      } else {
+        duties.push({id:nextDutyId++, name, type, year, month, daysInput, dayList, totalSlots:dayList.length});
+      }
+      dutyNameInput.value=''; dutyDaysInput.value='';
+      renderDuties(); saveToLocalStorage();
+    });
+
+    // --- Availability for a group on a specific day (count of available members) ---
+    function getAvailableOnDay(group, year, month, day, forType) {
+      if (!group.members) return 0;
+      let count = 0;
+      group.members.forEach(m => {
+        if (forType === 'armed' && m.type !== 'armed') return;
+        if (forType === 'unarmed' && m.type !== 'unarmed') return;
+        const isAbsent = (m.absences || []).some(a => day >= a.fromDay && day <= a.toDay);
+        if (!isAbsent) count++;
+      });
+      return count;
+    }
+
+    // --- Main allocation with balancing (group-level) ---
+    function computeOptimalAllocation() {
+      if (!groups.length) return { error: 'Δεν υπάρχουν ομάδες' };
+      if (!duties.length) return { error: 'Δεν υπάρχουν υπηρεσίες' };
+
+      // Build all occurrences
+      const occurrences = [];
+      duties.forEach((duty, di) => {
+        duty.dayList.forEach(day => {
+          occurrences.push({ dutyIdx: di, day, year: duty.year, month: duty.month });
+        });
+      });
+      occurrences.sort((a,b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        if (a.month !== b.month) return a.month - b.month;
+        return a.day - b.day;
+      });
+
+      let usedArmed = Array(groups.length).fill().map(() => ({}));
+      let usedUnarmed = Array(groups.length).fill().map(() => ({}));
+      let groupLoad = Array(groups.length).fill(0);
+      let assigned = Array(groups.length).fill().map(() => Array(duties.length).fill().map(() => []));
+
+      // Initial greedy assignment
+      for (let occ of occurrences) {
+        const duty = duties[occ.dutyIdx];
+        const requiredType = duty.type;
+        const dateKey = `${occ.year}-${occ.month}-${occ.day}`;
+        let eligible = [];
+        for (let g=0; g<groups.length; g++) {
+          const avail = getAvailableOnDay(groups[g], occ.year, occ.month, occ.day, requiredType);
+          let used = 0;
+          if (requiredType === 'armed') used = usedArmed[g][dateKey] || 0;
+          else used = (usedArmed[g][dateKey] || 0) + (usedUnarmed[g][dateKey] || 0);
+          if (avail > used) {
+            eligible.push({ g, load: groupLoad[g] });
+          }
+        }
+        if (eligible.length === 0) continue;
+        eligible.sort((a,b) => a.load - b.load);
+        const chosen = eligible[0];
+        assigned[chosen.g][occ.dutyIdx].push(occ.day);
+        groupLoad[chosen.g]++;
+        if (requiredType === 'armed') {
+          usedArmed[chosen.g][dateKey] = (usedArmed[chosen.g][dateKey] || 0) + 1;
+        } else {
+          const availUn = getAvailableOnDay(groups[chosen.g], occ.year, occ.month, occ.day, 'unarmed');
+          const usedUn = usedUnarmed[chosen.g][dateKey] || 0;
+          if (availUn > usedUn) {
+            usedUnarmed[chosen.g][dateKey] = usedUn + 1;
+          } else {
+            usedArmed[chosen.g][dateKey] = (usedArmed[chosen.g][dateKey] || 0) + 1;
+          }
+        }
+      }
+
+      // Balance: move duties from high-load to low-load groups (only armed duties for simplicity)
+      const totalMembers = groups.map(g => g.members.length);
+      let changed = true;
+      let iter = 0;
+      while (changed && iter < 2000) {
+        changed = false;
+        iter++;
+        let avg = groupLoad.map((load, i) => load / totalMembers[i]);
+        let maxIdx = 0, minIdx = 0;
+        for (let i=1; i<groups.length; i++) {
+          if (avg[i] > avg[maxIdx]) maxIdx = i;
+          if (avg[i] < avg[minIdx]) minIdx = i;
+        }
+        if (avg[maxIdx] - avg[minIdx] <= 1.0) break;
+        
+        let found = false;
+        for (let di=0; di<duties.length && !found; di++) {
+          const duty = duties[di];
+          const days = assigned[maxIdx][di];
+          if (days.length === 0) continue;
+          for (let day of days) {
+            const dateKey = `${duty.year}-${duty.month}-${day}`;
+            const requiredType = duty.type;
+            if (requiredType !== 'armed') continue; // only move armed duties
+            const availMin = getAvailableOnDay(groups[minIdx], duty.year, duty.month, day, requiredType);
+            let usedMin = usedArmed[minIdx][dateKey] || 0;
+            if (availMin > usedMin) {
+              assigned[maxIdx][di] = assigned[maxIdx][di].filter(d => d !== day);
+              groupLoad[maxIdx]--;
+              usedArmed[maxIdx][dateKey] = (usedArmed[maxIdx][dateKey] || 0) - 1;
+              assigned[minIdx][di].push(day);
+              groupLoad[minIdx]++;
+              usedArmed[minIdx][dateKey] = (usedArmed[minIdx][dateKey] || 0) + 1;
+              found = true;
+              changed = true;
+              break;
+            }
+          }
+        }
+        if (!found) break;
+      }
+
+      // Force assign any missing duties
+      function forceAssignMissing() {
+        let assignedSet = new Set();
+        for (let g=0; g<groups.length; g++) {
+          for (let di=0; di<duties.length; di++) {
+            for (let day of assigned[g][di]) {
+              assignedSet.add(`${di}|${day}`);
+            }
+          }
+        }
+        let allRequired = [];
+        for (let di=0; di<duties.length; di++) {
+          const duty = duties[di];
+          for (let day of duty.dayList) {
+            allRequired.push({ di, day, year: duty.year, month: duty.month, type: duty.type });
+          }
+        }
+        let missing = allRequired.filter(req => !assignedSet.has(`${req.di}|${req.day}`));
+        let warnings = [];
+        for (let req of missing) {
+          const dateKey = `${req.year}-${req.month}-${req.day}`;
+          let eligible = [];
+          for (let g=0; g<groups.length; g++) {
+            const avail = getAvailableOnDay(groups[g], req.year, req.month, req.day, req.type);
+            let used = 0;
+            if (req.type === 'armed') used = usedArmed[g][dateKey] || 0;
+            else used = (usedArmed[g][dateKey] || 0) + (usedUnarmed[g][dateKey] || 0);
+            if (avail > used) {
+              eligible.push({ g, load: groupLoad[g] });
+            }
+          }
+          if (eligible.length === 0) {
+            warnings.push(`Δεν υπάρχει διαθέσιμο μέλος για υπηρεσία "${duties[req.di].name}" την ημέρα ${req.day}/${req.month}/${req.year}.`);
+            continue;
+          }
+          eligible.sort((a,b) => a.load - b.load);
+          const chosen = eligible[0];
+          assigned[chosen.g][req.di].push(req.day);
+          groupLoad[chosen.g]++;
+          if (req.type === 'armed') {
+            usedArmed[chosen.g][dateKey] = (usedArmed[chosen.g][dateKey] || 0) + 1;
+          } else {
+            const availUn = getAvailableOnDay(groups[chosen.g], req.year, req.month, req.day, 'unarmed');
+            const usedUn = usedUnarmed[chosen.g][dateKey] || 0;
+            if (availUn > usedUn) {
+              usedUnarmed[chosen.g][dateKey] = usedUn + 1;
+            } else {
+              usedArmed[chosen.g][dateKey] = (usedArmed[chosen.g][dateKey] || 0) + 1;
+            }
+          }
+          assignedSet.add(`${req.di}|${req.day}`);
+        }
+        return warnings;
+      }
+      const warnings = forceAssignMissing();
+      
+      const allocation = Array(groups.length).fill().map(()=>Array(duties.length).fill(0));
+      const dateAllocation = Array(groups.length).fill().map(()=>Array(duties.length).fill(''));
+      for (let g=0; g<groups.length; g++) {
+        for (let d=0; d<duties.length; d++) {
+          const days = assigned[g][d];
+          allocation[g][d] = days.length;
+          if (days.length) {
+            days.sort((a,b)=>a-b);
+            dateAllocation[g][d] = formatDaysList(days);
+          }
+        }
+      }
+      return { allocation, dateAllocation, assigned, usedArmed, usedUnarmed, groupLoad, warnings };
+    }
+
+    // --- Rendering functions ---
+    function renderAllocationTables() {
+      const result = computeOptimalAllocation();
+      if (result.error) {
+        tablesContainer.innerHTML = `<div class="error-msg">⚠️ ${result.error}</div>`;
+        return;
+      }
+      window.lastAllocation = result;
+      const { allocation, dateAllocation, warnings } = result;
+      const groupNames = groups.map(g=>g.name);
+      const dutyNames = duties.map(d=>d.name);
+      const groupSizesTotal = groups.map(g=>g.members.length);
+      const dutyTotals = duties.map(d=>d.totalSlots);
+      const groupTotals = allocation.map(row=>row.reduce((a,b)=>a+b,0));
+      const dutySums = Array(duties.length).fill(0);
+      for (let d=0; d<duties.length; d++) for (let g=0; g<groups.length; g++) dutySums[d] += allocation[g][d];
+      let html = '';
+      if (warnings && warnings.length) {
+        html += `<div class="warning-msg">⚠️ Προσοχή: Δεν ήταν δυνατή η κάλυψη όλων των υπηρεσιών λόγω έλλειψης διαθέσιμων μελών!<br>${warnings.join('<br>')}</div>`;
+      }
+      html += `<div class="subtitle">📊 Πίνακας 1: Αριθμός ημερών ανά ομάδα</div><div class="table-wrapper">`;
+      html += `   <table><thead><tr><th>Ομάδα / Υπηρεσία</th>`;
+      dutyNames.forEach((n,i) => { html += `<th>${escapeHtml(n)} ${duties[i].type==='armed'?'🔫':'🔄'}</th>`; });
+      html += `<th>Σύνολο</th><th>Μ.Ο./μέλος</th></tr></thead><tbody>`;
+      for (let g=0; g<groups.length; g++) {
+        const avg = (groupTotals[g] / groupSizesTotal[g]).toFixed(2);
+        html += `<tr class="group-row"><td>${escapeHtml(groupNames[g])} (${groupSizesTotal[g]} μέλη, 🔫 ${groups[g].armed} 🛡️ ${groups[g].unarmed})</td>`;
+        for (let d=0; d<duties.length; d++) html += `<td>${allocation[g][d]}</td>`;
+        html += `<td><strong>${groupTotals[g]}</strong></td><td>${avg}</td></tr>`;
+      }
+      const totalDays = groupTotals.reduce((a,b)=>a+b,0);
+      const totalMembers = groupSizesTotal.reduce((a,b)=>a+b,0);
+      const globalAvg = (totalDays/totalMembers).toFixed(2);
+      html += `<tr class="totals-row"><td>Σύνολο ημερών</td>`;
+      for (let d=0; d<duties.length; d++) html += `<td><strong>${dutySums[d]}</strong> / ${dutyTotals[d]}</td>`;
+      html += `<td><strong>${totalDays}</strong></td><td>μ.ό. ${globalAvg}</td></tr>`;
+      html += `</tbody></table></div>`;
+
+      html += `<div class="subtitle">📅 Πίνακας 2: Αναλυτικές ημερομηνίες (μεμονωμένες)</div><div class="table-wrapper">`;
+      html += `<table><thead><tr><th>Ομάδα / Υπηρεσία</th>`;
+      dutyNames.forEach((n,i) => { html += `<th>${escapeHtml(n)} ${duties[i].type==='armed'?'🔫':'🔄'}</th>`; });
+      html += `</tr></thead><tbody>`;
+      for (let g=0; g<groups.length; g++) {
+        html += `<tr class="group-row"><td>${escapeHtml(groupNames[g])} (${groupSizesTotal[g]} μέλη)</td>`;
+        for (let d=0; d<duties.length; d++) html += `<td>${dateAllocation[g][d] || '—'}</td>`;
+        html += `</tr>`;
+      }
+      html += `</tbody></table></div>`;
+      tablesContainer.innerHTML = html;
+    }
+
+    function renderCalendar() {
+      const groupId = parseInt(calendarGroupSelect.value);
+      const group = groups.find(g => g.id === groupId);
+      if (!group) { calendarContainer.innerHTML = '<div class="error-msg">Επιλέξτε ομάδα</div>'; return; }
+      const year = parseInt(calendarYearSelect.value);
+      const month = parseInt(calendarMonthSelect.value);
+      const holidays = holidaysInput.value.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d>=1 && d<=31);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      
+      let allocationResult = window.lastAllocation;
+      if (!allocationResult) {
+        allocationResult = computeOptimalAllocation();
+        if (allocationResult.error) { calendarContainer.innerHTML = `<div class="error-msg">${allocationResult.error}</div>`; return; }
+        window.lastAllocation = allocationResult;
+      }
+      const { assigned } = allocationResult;
+      const groupIndex = groups.findIndex(g => g.id === groupId);
+      
+      const matrix = Array(duties.length).fill().map(() => Array(daysInMonth).fill(false));
+      const dailyServiceCount = Array(daysInMonth).fill(0);
+      for (let d=0; d<duties.length; d++) {
+        const dutyDays = assigned[groupIndex][d];
+        dutyDays.forEach(day => {
+          if (day >= 1 && day <= daysInMonth) {
+            matrix[d][day-1] = true;
+            dailyServiceCount[day-1]++;
+          }
+        });
+      }
+      
+      // Compute available members per day using member absences
+      const dailyArmedAvailable = [];
+      const dailyUnarmedAvailable = [];
+      const dailyArmedAbsent = [];
+      const dailyUnarmedAbsent = [];
+      for (let day=1; day<=daysInMonth; day++) {
+        let armed = 0, unarmed = 0;
+        let armedAbsent = 0, unarmedAbsent = 0;
+        group.members.forEach(m => {
+          const isAbsent = (m.absences || []).some(a => day >= a.fromDay && day <= a.toDay);
+          if (m.type === 'armed') {
+            if (isAbsent) armedAbsent++;
+            else armed++;
+          } else {
+            if (isAbsent) unarmedAbsent++;
+            else unarmed++;
+          }
+        });
+        dailyArmedAvailable.push(armed);
+        dailyUnarmedAvailable.push(unarmed);
+        dailyArmedAbsent.push(armedAbsent);
+        dailyUnarmedAbsent.push(unarmedAbsent);
+      }
+      
+      let html = `<div class="table-wrapper"><table class="calendar-table"><thead><tr><th>Υπηρεσία</th>`;
+      for (let day=1; day<=daysInMonth; day++) {
+        const holidayClass = holidays.includes(day) ? 'holiday' : '';
+        html += `<th class="${holidayClass}">${day}</th>`;
+      }
+      html += `</tr></thead><tbody>`;
+      for (let s=0; s<duties.length; s++) {
+        html += `<tr><td style="text-align:left;">${escapeHtml(duties[s].name)} ${duties[s].type==='armed'?'🔫':'🔄'}</td>`;
+        for (let day=1; day<=daysInMonth; day++) {
+          const holidayClass = holidays.includes(day) ? 'holiday' : '';
+          const hasService = matrix[s][day-1];
+          html += `<td class="${holidayClass}">${hasService ? '<span class="checkmark">✓</span>' : ''}</td>`;
+        }
+        html += `</tr>`;
+      }
+      html += `<tr style="background:#f0f0f0;"><td><strong>Σύνολο υπηρεσιών</strong></td>`;
+      for (let day=1; day<=daysInMonth; day++) html += `<td>${dailyServiceCount[day-1]}</td>`;
+      html += `</tr>`;
+      html += `<tr style="background:#f0f0f0;"><td><strong>Διαθέσιμοι Ένοπλοι</strong></td>`;
+      for (let day=1; day<=daysInMonth; day++) html += `<td>${dailyArmedAvailable[day-1]}</td>`;
+      html += `</tr>`;
+      html += `<tr style="background:#f0f0f0;"><td><strong>Διαθέσιμοι Άοπλοι</strong></td>`;
+      for (let day=1; day<=daysInMonth; day++) html += `<td>${dailyUnarmedAvailable[day-1]}</td>`;
+      html += `</tr>`;
+      html += `<tr style="background:#f0f0f0;"><td><strong>Απουσίες Ενόπλων</strong></td>`;
+      for (let day=1; day<=daysInMonth; day++) html += `<td>${dailyArmedAbsent[day-1]}</td>`;
+      html += `</tr>`;
+      html += `<tr style="background:#f0f0f0;"><td><strong>Απουσίες Αόπλων</strong></td>`;
+      for (let day=1; day<=daysInMonth; day++) html += `<td>${dailyUnarmedAbsent[day-1]}</td>`;
+      html += `</tr>`;
+      html += `</tbody></table></div>`;
+      calendarContainer.innerHTML = html;
+    }
+
+    // --- NEW: member-day status table ---
+    function renderMemberDayStatusTable() {
+      if (!window.lastAllocation) return;
+      const allocationResult = window.lastAllocation;
+      const year = parseInt(calendarYearSelect.value);
+      const month = parseInt(calendarMonthSelect.value);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const holidays = holidaysInput.value.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d>=1 && d<=31);
+      
+      // Build member-day assignments (exactly as in renderMemberTables)
+      let allMembers = [];
+      for (let g=0; g<groups.length; g++) {
+        const group = groups[g];
+        let groupDuties = [];
+        for (let di=0; di<duties.length; di++) {
+          const duty = duties[di];
+          if (duty.year !== year || duty.month !== month) continue;
+          const days = allocationResult.assigned[g][di];
+          for (let day of days) {
+            groupDuties.push({ dutyIdx: di, day, dateKey: `${duty.year}-${duty.month}-${day}`, dutyType: duty.type });
+          }
+        }
+        const members = [...group.members];
+        const memberLoad = new Array(members.length).fill(0);
+        const memberDailyUsed = members.map(() => ({}));
+        const memberDays = members.map(() => []);
+        const sortedDuties = [...groupDuties].sort((a,b) => {
+          if (a.dutyType === 'armed' && b.dutyType !== 'armed') return -1;
+          if (a.dutyType !== 'armed' && b.dutyType === 'armed') return 1;
+          return 0;
+        });
+        for (const duty of sortedDuties) {
+          let eligible = [];
+          for (let mi=0; mi<members.length; mi++) {
+            const m = members[mi];
+            if (duty.dutyType === 'armed' && m.type !== 'armed') continue;
+            const isAbsent = (m.absences || []).some(a => duty.day >= a.fromDay && duty.day <= a.toDay);
+            if (isAbsent) continue;
+            if (memberDailyUsed[mi][duty.dateKey]) continue;
+            eligible.push({ mi, load: memberLoad[mi] });
+          }
+          if (eligible.length === 0) continue;
+          eligible.sort((a,b) => a.load - b.load);
+          const chosen = eligible[0];
+          memberLoad[chosen.mi]++;
+          memberDailyUsed[chosen.mi][duty.dateKey] = true;
+          memberDays[chosen.mi].push(duty.day);
+        }
+        for (let mi=0; mi<members.length; mi++) {
+          allMembers.push({
+            groupName: group.name,
+            memberName: members[mi].name,
+            assignedDays: memberDays[mi]
+          });
+        }
+      }
+
+      // Build status per member per day
+      const memberStatus = [];
+      for (let m of allMembers) {
+        const serviceDays = new Set(m.assignedDays);
+        const dayStatus = Array(daysInMonth).fill('');
+        for (let d=1; d<=daysInMonth; d++) {
+          if (!serviceDays.has(d)) dayStatus[d-1] = 'ΕΞΟΔΟΥΧΟΣ';
+        }
+        const sortedDays = Array.from(serviceDays).sort((a,b)=>a-b);
+        let runStart = 0;
+        for (let i=0; i<sortedDays.length; i++) {
+          if (i===0 || sortedDays[i] !== sortedDays[i-1]+1) runStart = i;
+          if (i===sortedDays.length-1 || sortedDays[i+1] !== sortedDays[i]+1) {
+            const runLength = i - runStart + 1;
+            for (let pos=0; pos<runLength; pos++) {
+              if ((pos+1) % 3 === 0) {
+                const dayIdx = sortedDays[runStart+pos] - 1;
+                dayStatus[dayIdx] = 'ΥΠΗΡΕΣΙΑΚΟ';
+              }
+            }
+          }
+        }
+        memberStatus.push({
+          memberName: m.memberName,
+          groupName: m.groupName,
+          dayStatus: dayStatus
+        });
+      }
+
+      if (memberStatus.length === 0) return;
+
+      let html = `<div class="subtitle">📆 Αναλυτική κατάσταση ανά μέλος (ΕΞΟΔΟΥΧΟΣ / ΥΠΗΡΕΣΙΑΚΟ)</div>`;
+      html += `<div class="table-wrapper" style="overflow-x:auto;"><table style="min-width: 1200px;">`;
+      html += `<thead><tr><th>Μέλος</th><th>Ομάδα</th>`;
+      for (let d=1; d<=daysInMonth; d++) {
+        const holidayClass = holidays.includes(d) ? 'holiday' : '';
+        html += `<th class="${holidayClass}">${d}</th>`;
+      }
+      html += `<th>Σύνολο ΕΞΟΔ.</th><th>Σύνολο ΥΠΗΡ.</th></tr></thead><tbody>`;
+      let totalExodAll = 0, totalYpAll = 0;
+      for (let m of memberStatus) {
+        let exodCount = 0, ypCount = 0;
+        html += `<tr><td>${escapeHtml(m.memberName)}</td><td>${escapeHtml(m.groupName)}</td>`;
+        for (let d=0; d<daysInMonth; d++) {
+          const val = m.dayStatus[d];
+          if (val === 'ΕΞΟΔΟΥΧΟΣ') {
+            exodCount++;
+            html += `<td class="status-cell-exod">ΕΞΟΔΟΥΧΟΣ</td>`;
+          } else if (val === 'ΥΠΗΡΕΣΙΑΚΟ') {
+            ypCount++;
+            html += `<td class="status-cell-ypiresiako">ΥΠΗΡΕΣΙΑΚΟ</td>`;
+          } else {
+            html += `<td></td>`;
+          }
+        }
+        html += `<td>${exodCount}</td><td>${ypCount}</td></tr>`;
+        totalExodAll += exodCount;
+        totalYpAll += ypCount;
+      }
+      html += `<tr style="background:#e0f0f8; font-weight:bold;"><td colspan="${2+daysInMonth}">ΣΥΝΟΛΑ</td><td>${totalExodAll}</td><td>${totalYpAll}</td></tr>`;
+      html += `</tbody></table></div>`;
+      
+      // Append to memberTablesContainer
+      const existing = memberTablesContainer.innerHTML;
+      memberTablesContainer.innerHTML = existing + html;
+    }
+
+    function renderMemberTables() {
+      if (!window.lastAllocation) {
+        renderAllocationTables();
+      }
+      const allocationResult = window.lastAllocation;
+      if (!allocationResult || allocationResult.error) {
+        memberTablesContainer.innerHTML = '<div class="error-msg">Δεν υπάρχει έγκυρη κατανομή</div>';
+        return;
+      }
+      const { assigned } = allocationResult;
+      const year = parseInt(calendarYearSelect.value);
+      const month = parseInt(calendarMonthSelect.value);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      const holidays = holidaysInput.value.split(',').map(d => parseInt(d.trim())).filter(d => !isNaN(d) && d>=1 && d<=31);
+      
+      let html = '<div class="subtitle">📋 Αναλυτικοί πίνακες ανά ομάδα (με ονόματα μελών)</div>';
+      for (let g=0; g<groups.length; g++) {
+        const group = groups[g];
+        // Build list of duties for this group
+        let groupDuties = [];
+        for (let di=0; di<duties.length; di++) {
+          const duty = duties[di];
+          if (duty.year !== year || duty.month !== month) continue;
+          const days = assigned[g][di];
+          for (let day of days) {
+            groupDuties.push({ dutyIdx: di, day, dateKey: `${duty.year}-${duty.month}-${day}`, dutyType: duty.type });
+          }
+        }
+        // Assign to members
+        const members = [...group.members];
+        const memberLoad = new Array(members.length).fill(0);
+        const memberDailyUsed = members.map(() => ({}));
+        const memberAssignments = []; // list of { dutyIdx, day, memberIdx }
+        const memberDays = members.map(() => []); // store days for each member
+        const sortedDuties = [...groupDuties].sort((a,b) => {
+          if (a.dutyType === 'armed' && b.dutyType !== 'armed') return -1;
+          if (a.dutyType !== 'armed' && b.dutyType === 'armed') return 1;
+          return 0;
+        });
+        for (const duty of sortedDuties) {
+          let eligible = [];
+          for (let mi=0; mi<members.length; mi++) {
+            const m = members[mi];
+            if (duty.dutyType === 'armed' && m.type !== 'armed') continue;
+            const isAbsent = (m.absences || []).some(a => duty.day >= a.fromDay && duty.day <= a.toDay);
+            if (isAbsent) continue;
+            if (memberDailyUsed[mi][duty.dateKey]) continue;
+            eligible.push({ mi, load: memberLoad[mi] });
+          }
+          if (eligible.length === 0) continue;
+          eligible.sort((a,b) => a.load - b.load);
+          const chosen = eligible[0];
+          memberAssignments.push({ dutyIdx: duty.dutyIdx, day: duty.day, memberIdx: chosen.mi });
+          memberLoad[chosen.mi]++;
+          memberDailyUsed[chosen.mi][duty.dateKey] = true;
+          memberDays[chosen.mi].push(duty.day);
+        }
+
+        // Build matrix for display
+        const matrix = Array(duties.length).fill().map(() => Array(daysInMonth).fill(''));
+        for (let assign of memberAssignments) {
+          const duty = duties[assign.dutyIdx];
+          const day = assign.day;
+          if (day >= 1 && day <= daysInMonth && duty.year === year && duty.month === month) {
+            matrix[assign.dutyIdx][day-1] = group.members[assign.memberIdx].name;
+          }
+        }
+        html += `<div class="subtitle" style="margin-top:30px;">📅 ${escapeHtml(group.name)}</div>`;
+        html += `<div class="table-wrapper"><table class="calendar-table"><thead><tr><th>Υπηρεσία</th>`;
+        for (let day=1; day<=daysInMonth; day++) {
+          const holidayClass = holidays.includes(day) ? 'holiday' : '';
+          html += `<th class="${holidayClass}">${day}</th>`;
+        }
+        html += `</tr></thead><tbody>`;
+        for (let s=0; s<duties.length; s++) {
+          const duty = duties[s];
+          if (duty.year !== year || duty.month !== month) continue;
+          html += `<tr><td style="text-align:left;">${escapeHtml(duty.name)} ${duty.type==='armed'?'🔫':'🔄'}</td>`;
+          for (let day=1; day<=daysInMonth; day++) {
+            const holidayClass = holidays.includes(day) ? 'holiday' : '';
+            const name = matrix[s][day-1];
+            html += `<td class="${holidayClass} member-name-cell">${name ? escapeHtml(name) : ''}</td>`;
+          }
+          html += `</tr>`;
+        }
+        html += `</tbody></table></div>`;
+
+        // Per-group member summary (extra column with totals)
+        html += `<div class="member-summary-table"><table><thead><tr><th>Μέλος</th><th>Σύνολο Υπηρεσιών</th><th>Κατάσταση</th></tr></thead><tbody>`;
+        for (let mi=0; mi<members.length; mi++) {
+          const total = memberLoad[mi];
+          const days = memberDays[mi].sort((a,b)=>a-b);
+          let hasTripleConsecutive = false;
+          for (let i=0; i<=days.length-3; i++) {
+            if (days[i+1] === days[i]+1 && days[i+2] === days[i]+2) {
+              hasTripleConsecutive = true;
+              break;
+            }
+          }
+          let status = '';
+          if (total === 0) status = 'ΕΞΟΔΟΥΧΟΣ';
+          else if (hasTripleConsecutive) status = 'ΥΠΗΡΕΣΙΑΚΟ';
+          else status = '';
+          html += `<tr><td>${escapeHtml(members[mi].name)}</td><td>${total}</td><td class="${status === 'ΕΞΟΔΟΥΧΟΣ' ? 'status-exod' : (status === 'ΥΠΗΡΕΣΙΑΚΟ' ? 'status-ypiresiako' : '')}">${status}</td></tr>`;
+        }
+        html += `</tbody></table></div>`;
+      }
+      memberTablesContainer.innerHTML = html;
+      // Now call the new function to add the detailed member-day status table
+      renderMemberDayStatusTable();
+    }
+
+    function updateCalendarGroupSelect() {
+      const selected = calendarGroupSelect.value;
+      calendarGroupSelect.innerHTML = '';
+      groups.forEach(g => {
+        const option = document.createElement('option');
+        option.value = g.id;
+        option.textContent = g.name;
+        if (selected && selected == g.id) option.selected = true;
+        calendarGroupSelect.appendChild(option);
+      });
+    }
+
+    // ========== EXPORT FUNCTIONS ==========
+    function exportToExcel() {
+      const result = computeOptimalAllocation();
+      if (result.error) {
+        alert('Δεν μπορεί να γίνει εξαγωγή: ' + result.error);
+        return;
+      }
+      const workbook = XLSX.utils.book_new();
+      const dutyNames = duties.map(d => d.name);
+      const groupNames = groups.map(g=>g.name);
+      const groupSizesTotal = groups.map(g=>g.members.length);
+      const groupTotals = result.allocation.map(row=>row.reduce((a,b)=>a+b,0));
+      const dutySums = Array(duties.length).fill(0);
+      for (let d=0; d<duties.length; d++) for (let g=0; g<groups.length; g++) dutySums[d] += result.allocation[g][d];
+      
+      // Sheet 1: numbers
+      const sheet1Data = [['Ομάδα / Υπηρεσία', ...dutyNames, 'Σύνολο', 'Μ.Ο./μέλος']];
+      for (let g=0; g<groups.length; g++) {
+        const row = [`${groupNames[g]} (${groupSizesTotal[g]} μέλη, 🔫 ${groups[g].armed} 🛡️ ${groups[g].unarmed})`, ...result.allocation[g], groupTotals[g], (groupTotals[g]/groupSizesTotal[g]).toFixed(2)];
+        sheet1Data.push(row);
+      }
+      const totalDays = groupTotals.reduce((a,b)=>a+b,0);
+      const totalMembers = groupSizesTotal.reduce((a,b)=>a+b,0);
+      sheet1Data.push(['Σύνολο ημερών', ...dutySums.map((s,i)=>`${s}/${duties[i].totalSlots}`), totalDays, (totalDays/totalMembers).toFixed(2)]);
+      const sheet1 = XLSX.utils.aoa_to_sheet(sheet1Data);
+      XLSX.utils.book_append_sheet(workbook, sheet1, 'Αριθμός Ημερών');
+      
+      // Sheet 2: dates
+      const sheet2Data = [['Ομάδα / Υπηρεσία', ...dutyNames]];
+      for (let g=0; g<groups.length; g++) {
+        sheet2Data.push([`${groupNames[g]} (${groupSizesTotal[g]} μέλη)`, ...result.dateAllocation[g].map(d=>d||'')]);
+      }
+      const sheet2 = XLSX.utils.aoa_to_sheet(sheet2Data);
+      XLSX.utils.book_append_sheet(workbook, sheet2, 'Ημερομηνίες');
+      
+      // Sheet 3: member-day status
+      const year = parseInt(calendarYearSelect.value);
+      const month = parseInt(calendarMonthSelect.value);
+      const daysInMonth = new Date(year, month, 0).getDate();
+      // Build member-day assignments (same as in renderMemberDayStatusTable)
+      let allMembers = [];
+      for (let g=0; g<groups.length; g++) {
+        const group = groups[g];
+        let groupDuties = [];
+        for (let di=0; di<duties.length; di++) {
+          const duty = duties[di];
+          if (duty.year !== year || duty.month !== month) continue;
+          const days = result.assigned[g][di];
+          for (let day of days) {
+            groupDuties.push({ dutyIdx: di, day, dateKey: `${duty.year}-${duty.month}-${day}`, dutyType: duty.type });
+          }
+        }
+        const members = [...group.members];
+        const memberLoad = new Array(members.length).fill(0);
+        const memberDailyUsed = members.map(() => ({}));
+        const memberDays = members.map(() => []);
+        const sortedDuties = [...groupDuties].sort((a,b) => {
+          if (a.dutyType === 'armed' && b.dutyType !== 'armed') return -1;
+          if (a.dutyType !== 'armed' && b.dutyType === 'armed') return 1;
+          return 0;
+        });
+        for (const duty of sortedDuties) {
+          let eligible = [];
+          for (let mi=0; mi<members.length; mi++) {
+            const m = members[mi];
+            if (duty.dutyType === 'armed' && m.type !== 'armed') continue;
+            const isAbsent = (m.absences || []).some(a => duty.day >= a.fromDay && duty.day <= a.toDay);
+            if (isAbsent) continue;
+            if (memberDailyUsed[mi][duty.dateKey]) continue;
+            eligible.push({ mi, load: memberLoad[mi] });
+          }
+          if (eligible.length === 0) continue;
+          eligible.sort((a,b) => a.load - b.load);
+          const chosen = eligible[0];
+          memberLoad[chosen.mi]++;
+          memberDailyUsed[chosen.mi][duty.dateKey] = true;
+          memberDays[chosen.mi].push(duty.day);
+        }
+        for (let mi=0; mi<members.length; mi++) {
+          allMembers.push({
+            groupName: group.name,
+            memberName: members[mi].name,
+            assignedDays: memberDays[mi]
+          });
+        }
+      }
+
+      const statusSheetData = [['Μέλος', 'Ομάδα', ...Array.from({length:daysInMonth},(_,i)=>i+1), 'Σύνολο ΕΞΟΔ.', 'Σύνολο ΥΠΗΡ.']];
+      let totalExodAll = 0, totalYpAll = 0;
+      for (let m of allMembers) {
+        const serviceDays = new Set(m.assignedDays);
+        const dayStatus = Array(daysInMonth).fill('');
+        for (let d=1; d<=daysInMonth; d++) {
+          if (!serviceDays.has(d)) dayStatus[d-1] = 'ΕΞΟΔΟΥΧΟΣ';
+        }
+        const sortedDays = Array.from(serviceDays).sort((a,b)=>a-b);
+        let runStart = 0;
+        for (let i=0; i<sortedDays.length; i++) {
+          if (i===0 || sortedDays[i] !== sortedDays[i-1]+1) runStart = i;
+          if (i===sortedDays.length-1 || sortedDays[i+1] !== sortedDays[i]+1) {
+            const runLength = i - runStart + 1;
+            for (let pos=0; pos<runLength; pos++) {
+              if ((pos+1) % 3 === 0) {
+                const dayIdx = sortedDays[runStart+pos] - 1;
+                dayStatus[dayIdx] = 'ΥΠΗΡΕΣΙΑΚΟ';
+              }
+            }
+          }
+        }
+        let exodCount = 0, ypCount = 0;
+        const row = [m.memberName, m.groupName];
+        for (let d=0; d<daysInMonth; d++) {
+          const val = dayStatus[d];
+          if (val === 'ΕΞΟΔΟΥΧΟΣ') { exodCount++; row.push('ΕΞΟΔΟΥΧΟΣ'); }
+          else if (val === 'ΥΠΗΡΕΣΙΑΚΟ') { ypCount++; row.push('ΥΠΗΡΕΣΙΑΚΟ'); }
+          else row.push('');
+        }
+        row.push(exodCount, ypCount);
+        statusSheetData.push(row);
+        totalExodAll += exodCount;
+        totalYpAll += ypCount;
+      }
+      statusSheetData.push(['ΣΥΝΟΛΑ', '', ...Array(daysInMonth).fill(''), totalExodAll, totalYpAll]);
+      const wsStatus = XLSX.utils.aoa_to_sheet(statusSheetData);
+      XLSX.utils.book_append_sheet(workbook, wsStatus, 'Κατάσταση Μελών');
+      
+      XLSX.writeFile(workbook, 'κατανομη_υπηρεσιων.xlsx');
+    }
+
+    function exportToWord() {
+      const result = computeOptimalAllocation();
+      if (result.error) return alert(result.error);
+      const style = document.querySelector('style').innerHTML;
+      const tablesHtml = document.getElementById('allocationTablesContainer').innerHTML;
+      const memberTablesHtml = document.getElementById('memberTablesContainer').innerHTML;
+      const doc = `<html><head><meta charset="UTF-8"><title>Κατανομή Υπηρεσιών</title><style>${style}</style></head><body><h1>Ισοκατανομή 24ωρων Υπηρεσιών - GKARAS ROBOTICS</h1>${tablesHtml}${memberTablesHtml}</body></html>`;
+      const blob = new Blob([doc], {type:"application/msword;charset=utf-8"});
+      const link = document.createElement('a'); link.href=URL.createObjectURL(blob); link.download='κατανομη_υπηρεσιων.doc'; link.click();
+    }
+
+    function exportToStaticHTML() {
+      const result = computeOptimalAllocation();
+      if (result.error) { alert(result.error); return; }
+      const style = document.querySelector('style').innerHTML;
+      const tablesHtml = document.getElementById('allocationTablesContainer').innerHTML;
+      const memberTablesHtml = document.getElementById('memberTablesContainer').innerHTML;
+      const fullHtml = `<!DOCTYPE html>
+<html lang="el">
+<head><meta charset="UTF-8"><title>Κατανομή Υπηρεσιών - GKARAS ROBOTICS</title><style>${style}</style></head>
+<body><div style="max-width:1400px; margin:0 auto; padding:20px;">
+  <div class="powered-header"><div class="powered-left">⚡ <span>POWERED BY GKARAS ROBOTICS</span> ⚡</div><div class="powered-right">Αναφορά Κατανομής Υπηρεσιών</div></div>
+  <h1>📋 Ισοκατανομή 24ωρων Υπηρεσιών</h1><div>Ημερομηνία: ${new Date().toLocaleString('el-GR')}</div>
+  ${tablesHtml}
+  ${memberTablesHtml}
+  <div class="info-note">✅ Απόλυτη τήρηση διαθεσιμότητας. Ισοκατανομή με απόκλιση ≤ 1 ημέρα ανά μέλος.</div>
+</div></body></html>`;
+      const blob = new Blob([fullHtml], {type:"text/html;charset=utf-8"});
+      const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = 'κατανομη_υπηρεσιων.html'; link.click();
+    }
+
+    function printPage() { window.print(); }
+    function pdfPage() { window.print(); }
+
+    function loadExampleData() {
+      groups = [
+        { id: nextGroupId++, name: '1η Ίλη', armed: 6, unarmed: 0, members: [] },
+        { id: nextGroupId++, name: '2η Ίλη', armed: 6, unarmed: 1, members: [] },
+        { id: nextGroupId++, name: '3η Ίλη', armed: 9, unarmed: 0, members: [] },
+        { id: nextGroupId++, name: 'ΙΛΗ ΔΣ', armed: 5, unarmed: 1, members: [] }
+      ];
+      groups.forEach(g => { g.members = getDefaultMembers(g); });
+      // Add some absences for example
+      const group1 = groups[0];
+      if (group1.members.length >= 3) {
+        group1.members[0].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group1.members[1].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group1.members[2].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+      }
+      const group2 = groups[1];
+      if (group2.members.length >= 4) {
+        group2.members[0].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group2.members[1].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group2.members[2].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group2.members[3].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        group2.members[0].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        group2.members[1].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        group2.members[2].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        if (group2.members[4] && group2.members[4].type === 'unarmed') {
+          group2.members[4].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+          group2.members[4].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        }
+      }
+      const group3 = groups[2];
+      if (group3.members.length >= 5) {
+        for (let i=0; i<5; i++) group3.members[i].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        for (let i=0; i<4; i++) group3.members[i].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+      }
+      const group4 = groups[3];
+      if (group4.members.length >= 3) {
+        for (let i=0; i<3; i++) group4.members[i].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+        for (let i=0; i<3; i++) group4.members[i].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        if (group4.members[5] && group4.members[5].type === 'unarmed') {
+          group4.members[5].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 3, toDay: 13 });
+          group4.members[5].absences.push({ type: 'ΑΔΕΙΑ', fromDay: 14, toDay: 24 });
+        }
+      }
+      duties = [];
+      const dutyNames = ['Θ/Φ 1ο', 'ΦΑΝΕΡΟΣ ΣΚ', 'ΠΕΡΙΠΟΛΟ ΑΒΑΝΤΑ', 'Α.Μ.', 'Θ/2', 'Θ3', 'ΑΜ2', 'ΜΕΣ1', 'ΜΕΣ2', 'ΜΕΣ3', 'ΑΟΤ', 'ΕΠΚΠ', 'ΕΣΤ1'];
+      const types = ['mixed','armed','armed','mixed','mixed','mixed','mixed','armed','armed','armed','armed','armed','armed'];
+      dutyNames.forEach((name,i) => {
+        let type = types[i];
+        let daysInput = '1-30';
+        if (name === 'ΑΟΤ') daysInput = '1-12';
+        if (name === 'ΕΠΚΠ') daysInput = '1-20';
+        duties.push({ id: nextDutyId++, name, type, year: 2026, month: 4, daysInput, dayList: parseDaysToList(daysInput), totalSlots: parseDaysToList(daysInput).length });
+      });
+      editingGroupId = null; editingDutyId = null;
+      addGroupBtn.innerText = '➕ Προσθήκη';
+      addDutyBtn.innerText = '➕ Προσθήκη';
+      renderGroups(); renderDuties(); tablesContainer.innerHTML=''; saveToLocalStorage();
+    }
+
+    // Initialize
+    loadFromLocalStorage();
+    renderGroups(); renderDuties();
+    calculateBtn.addEventListener('click', () => {
+      renderAllocationTables();
+      renderCalendar();
+      renderMemberTables();
+    });
+    printBtn.addEventListener('click', printPage);
+    pdfBtn.addEventListener('click', pdfPage);
+    excelBtn.addEventListener('click', exportToExcel);
+    wordBtn.addEventListener('click', exportToWord);
+    htmlExportBtn.addEventListener('click', exportToStaticHTML);
+    loadExampleBtn.addEventListener('click', loadExampleData);
+    refreshCalendarBtn.addEventListener('click', () => {
+      if (!window.lastAllocation) renderAllocationTables();
+      renderCalendar();
+      renderMemberTables();
+    });
+    renderAllocationTables();
+    if (groups.length) {
+      calendarGroupSelect.value = groups[0].id;
+      renderCalendar();
+      renderMemberTables();
+    }
+  })();
+</script>
+</body>
+</html>
